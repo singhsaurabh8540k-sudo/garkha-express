@@ -8,7 +8,7 @@ document.querySelectorAll(".card button").forEach((btn) => {
 
     cart.push({ name, price });
 
-    document.getElementById("cartCount").innerText = cart.length;
+    document.getElementById("cartCount").innerText = "🛒 Cart (" + cart.length + ")";
 
     let items = "";
     let total = 0;
