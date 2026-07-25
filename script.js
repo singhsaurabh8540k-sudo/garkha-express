@@ -1,24 +1,41 @@
+let cart = [];
 
-let cartCount = 0;
+document.querySelectorAll(".card button").forEach((btn) => {
+  btn.addEventListener("click", function () {
+    const card = this.parentElement;
+    const name = card.querySelector("h3").innerText;
+    const price = card.querySelector(".price").innerText;
 
-// Cart counter बनाएं
-const cart = document.createElement("div");
-cart.innerHTML = "🛒 Cart (0)";
-cart.style.position = "fixed";
-cart.style.top = "10px";
-cart.style.right = "10px";
-cart.style.background = "#16a34a";
-cart.style.color = "white";
-cart.style.padding = "10px 15px";
-cart.style.borderRadius = "10px";
-cart.style.fontWeight = "bold";
-document.body.appendChild(cart);
+    cart.push({ name, price });
 
-// सभी Add to Cart बटन पर काम करें
-document.querySelectorAll("button").forEach(button => {
-  button.addEventListener("click", () => {
-    cartCount++;
-    cart.innerHTML = "🛒 Cart (" + cartCount + ")";
-    alert("✅ Product Added to Cart");
+    document.getElementById("cartCount").innerText = cart.length;
+
+    let items = "";
+    let total = 0;
+
+    cart.forEach((item) => {
+      items += item.name + " - " + item.price + "<br>";
+      total += parseInt(item.price.replace(/[^\d]/g, ""));
+    });
+
+    document.getElementById("cartItems").innerHTML = items;
+    document.getElementById("total").innerText = total;
   });
 });
+
+function toggleCart() {
+  const box = document.getElementById("cartBox");
+  box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+function sendWhatsApp() {
+  let message = "🛒 Garkha Express Order%0A%0A";
+
+  cart.forEach((item) => {
+    message += item.name + " - " + item.price + "%0A";
+  });
+
+  message += "%0ATotal: ₹" + document.getElementById("total").innerText;
+
+  window.open("https://wa.me/91XXXXXXXXXX?text=" + message, "_blank");
+}
