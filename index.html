@@ -4,128 +4,150 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Garkha Express - Online Grocery</title>
+<title>Garkha Express</title>
 
 <link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
 <header>
-    <div class="logo">🛒 Garkha Express</div>
+  <div class="logo">🛒 Garkha Express</div>
 
-    <button class="cart-btn" onclick="toggleCart()">
-        🛒 Cart (<span id="cartCount">0</span>)
-    </button>
+  <button class="cartBtn" onclick="toggleCart()">
+    🛒 Cart (<span id="cartCount">0</span>)
+  </button>
 </header>
 
-<section class="hero">
-    <h1>Fresh Grocery at Your Door 🚚</h1>
-    <p>Garkha mein ghar baithe grocery order karein</p>
+<div class="search">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search Grocery..."
+    oninput="searchProducts()"
+  >
+</div>
 
-    <input
-        type="text"
-        id="searchInput"
-        placeholder="🔍 Search grocery..."
-        onkeyup="searchProducts()"
-    >
-</section>
+<div class="products">
 
-<section class="products" id="products">
+  <div class="card">
+    <h3>🥔 Potato</h3>
+    <div class="price">₹30/kg</div>
 
-    <div class="card" data-name="Potato">
-        <div class="product-img">🥔</div>
-        <h3>Potato</h3>
-        <p>Fresh Potato</p>
-        <div class="price">₹30/kg</div>
-        <button onclick="addToCart('Potato',30)">
-            Add to Cart
-        </button>
-    </div>
-
-    <div class="card" data-name="Onion">
-        <div class="product-img">🧅</div>
-        <h3>Onion</h3>
-        <p>Fresh Onion</p>
-        <div class="price">₹40/kg</div>
-        <button onclick="addToCart('Onion',40)">
-            Add to Cart
-        </button>
-    </div>
-
-    <div class="card" data-name="Rice">
-        <div class="product-img">🍚</div>
-        <h3>Rice</h3>
-        <p>Premium Rice</p>
-        <div class="price">₹60/kg</div>
-        <button onclick="addToCart('Rice',60)">
-            Add to Cart
-        </button>
-    </div>
-
-    <div class="card" data-name="Milk">
-        <div class="product-img">🥛</div>
-        <h3>Milk</h3>
-        <p>Fresh Milk</p>
-        <div class="price">₹55</div>
-        <button onclick="addToCart('Milk',55)">
-            Add to Cart
-        </button>
-    </div>
-
-    <div class="card" data-name="Tomato">
-        <div class="product-img">🍅</div>
-        <h3>Tomato</h3>
-        <p>Fresh Tomato</p>
-        <div class="price">₹35/kg</div>
-        <button onclick="addToCart('Tomato',35)">
-            Add to Cart
-        </button>
-    </div>
-
-    <div class="card" data-name="Banana">
-        <div class="product-img">🍌</div>
-        <h3>Banana</h3>
-        <p>Fresh Banana</p>
-        <div class="price">₹50/dozen</div>
-        <button onclick="addToCart('Banana',50)">
-            Add to Cart
-        </button>
-    </div>
-
-</section>
-
-<div id="cartBox" class="cart-box">
-
-    <div class="cart-header">
-        <h2>🛒 My Cart</h2>
-        <button onclick="toggleCart()">✕</button>
-    </div>
-
-    <div id="cartItems">
-        <p class="empty">Your cart is empty</p>
-    </div>
-
-    <div class="cart-total">
-        Total: ₹<span id="total">0</span>
-    </div>
-
-    <button class="order-btn" onclick="sendWhatsApp()">
-        📲 Order on WhatsApp
+    <button onclick="addToCart('Potato',30)">
+      Add to Cart
     </button>
+  </div>
+
+  <div class="card">
+    <h3>🧅 Onion</h3>
+    <div class="price">₹40/kg</div>
+
+    <button onclick="addToCart('Onion',40)">
+      Add to Cart
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>🥛 Milk</h3>
+    <div class="price">₹55</div>
+
+    <button onclick="addToCart('Milk',55)">
+      Add to Cart
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>🍚 Rice</h3>
+    <div class="price">₹60/kg</div>
+
+    <button onclick="addToCart('Rice',60)">
+      Add to Cart
+    </button>
+  </div>
 
 </div>
 
+
+<!-- CART -->
+
+<div id="cartBox" class="cartBox">
+
+  <button class="closeBtn" onclick="toggleCart()">✕</button>
+
+  <h2>🛒 My Cart</h2>
+
+  <div id="cartItems">
+    No items added
+  </div>
+
+  <hr>
+
+  <h3>
+    Total: ₹<span id="total">0</span>
+  </h3>
+
+  <button class="checkoutBtn" onclick="openCheckout()">
+    Proceed to Checkout
+  </button>
+
+</div>
+
+
+<!-- CHECKOUT -->
+
+<div id="checkoutBox" class="checkoutBox">
+
+  <h2>📦 Delivery Details</h2>
+
+  <input
+    type="text"
+    id="customerName"
+    placeholder="Your Name"
+  >
+
+  <input
+    type="tel"
+    id="phone"
+    placeholder="Mobile Number"
+  >
+
+  <input
+    type="text"
+    id="district"
+    placeholder="District"
+  >
+
+  <textarea
+    id="address"
+    placeholder="Full Delivery Address"
+  ></textarea>
+
+  <button onclick="getLocation()">
+    📍 Use My Current Location
+  </button>
+
+  <p id="locationStatus">
+    Location not selected
+  </p>
+
+  <button class="placeOrder" onclick="placeOrder()">
+    🛍️ Place Order
+  </button>
+
+  <button class="cancelBtn" onclick="closeCheckout()">
+    Cancel
+  </button>
+
+</div>
+
+
 <footer>
-    <h3>🛒 Garkha Express</h3>
-    <p>Fresh Grocery • Fast Delivery • Best Price</p>
-
-    <p>📞 Order on WhatsApp: +91 XXXXXXXXXX</p>
-
-    <p class="copyright">
-        © 2026 Garkha Express
-    </p>
+  📞 Garkha Express Grocery Delivery
 </footer>
+
 
 <script src="script.js"></script>
 
