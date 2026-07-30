@@ -1,186 +1,485 @@
+// ===============================
+// SUPABASE CONFIG
+// ===============================
+
+const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
+
+const SUPABASE_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE";
+
+const db = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+
+// ===============================
+// DELIVERY AREA
+// ===============================
+
+// Abhi example ke liye Garkha rakha hai.
+// Baad me apne delivery area ke naam add kar sakte ho.
+
+const ALLOWED_DISTRICTS = [
+  "saran",
+  "chhapra",
+  "garkha"
+];
+
+
+// ===============================
+// CART
+// ===============================
+
 let cart = [];
+
+let latitude = null;
+let longitude = null;
+
 
 function addToCart(name, price){
 
-    const existing = cart.find(item => item.name === name);
+  const existing = cart.find(item => item.name === name);
 
-    if(existing){
-        existing.qty++;
-    }else{
-        cart.push({
-            name:name,
-            price:price,
-            qty:1
-        });
-    }
+  if(existing){
+    existing.qty++;
+  }else{
 
-    updateCart();
+    cart.push({
+      name:name,
+      price:price,
+      qty:1
+    });
 
-    alert(name + " cart me add ho gaya 🛒");
+  }
+
+  updateCart();
+
+  alert(name + " cart me add ho gaya ✅");
 }
+
+
+function increaseQty(index){
+
+  cart[index].qty++;
+
+  updateCart();
+}
+
+
+function decreaseQty(index){
+
+  cart[index].qty--;
+
+  if(cart[index].qty <= 0){
+    cart.splice(index,1);
+  }
+
+  updateCart();
+}
+
 
 function updateCart(){
 
-    const cartCount = document.getElementById("cartCount");
-    const cartItems = document.getElementById("cartItems");
-    const totalElement = document.getElementById("total");
+  const cartCount = cart.reduce(
+    (sum,item) => sum + item.qty,
+    0
+  );
 
-    let total = 0;
-    let count = 0;
+  document.getElementById("cartCount").innerText = cartCount;
 
-    cart.forEach(item => {
 
-        total += item.price * item.qty;
-        count += item.qty;
+  let itemsHTML = "";
+  let total = 0;
+
+
+  if(cart.length === 0){
+
+    itemsHTML = "No items added";
+
+  }else{
+
+    cart.forEach((item,index)=>{
+
+      const itemTotal = item.price * item.qty;
+
+      total += itemTotal;
+
+      itemsHTML += `
+
+        <div class="cartRow">
+
+          <div>
+            <b>${item.name}</b>
+            <br>
+            ₹${item.price} × ${item.qty}
+          </div>
+
+          <div class="qty">
+
+            <button onclick="decreaseQty(${index})">
+              −
+            </button>
+
+            ${item.qty}
+
+            <button onclick="increaseQty(${index})">
+              +
+            </button>
+
+          </div>
+
+        </div>
+
+      `;
 
     });
 
-    cartCount.innerText = count;
+  }
 
-    if(cart.length === 0){
 
-        cartItems.innerHTML =
-        '<p class="empty">Your cart is empty</p>';
+  document.getElementById("cartItems").innerHTML = itemsHTML;
 
-    }else{
+  document.getElementById("total").innerText = total;
 
-        let html = "";
-
-        cart.forEach((item,index) => {
-
-            html += `
-            <div class="cart-item">
-
-                <div>
-                    <b>${item.name}</b><br>
-                    ₹${item.price} × ${item.qty}
-                </div>
-
-                <div class="qty">
-
-                    <button onclick="decrease(${index})">−</button>
-
-                    <span>${item.qty}</span>
-
-                    <button onclick="increase(${index})">+</button>
-
-                </div>
-
-            </div>
-            `;
-
-        });
-
-        cartItems.innerHTML = html;
-    }
-
-    totalElement.innerText = total;
 }
 
-function increase(index){
 
-    cart[index].qty++;
-
-    updateCart();
-}
-
-function decrease(index){
-
-    cart[index].qty--;
-
-    if(cart[index].qty <= 0){
-        cart.splice(index,1);
-    }
-
-    updateCart();
-}
+// ===============================
+// CART OPEN/CLOSE
+// ===============================
 
 function toggleCart(){
 
-    const box = document.getElementById("cartBox");
+  const box = document.getElementById("cartBox");
 
-    if(box.style.display === "block"){
-        box.style.display = "none";
-    }else{
-        box.style.display = "block";
-    }
+  if(box.style.display === "block"){
+    box.style.display = "none";
+  }else{
+    box.style.display = "block";
+  }
+
 }
 
-function searchProducts(){
 
-    const search =
-    document.getElementById("searchInput").value.toLowerCase();
+// ===============================
+// CHECKOUT
+// ===============================
 
-    const products =
-    document.querySelectorAll(".card");
+function openCheckout(){
 
-    products.forEach(card => {
+  if(cart.length === 0){
 
-        const name =
-        card.getAttribute("data-name").toLowerCase();
+    alert("Pehle grocery cart me add karein.");
 
-        if(name.includes(search)){
-            card.style.display = "";
-        }else{
-            card.style.display = "none";
-        }
+    return;
+  }
 
-    });
+  document.getElementById("checkoutBox").style.display = "block";
+
 }
 
-function sendWhatsApp(){
 
-    if(cart.length === 0){
+function closeCheckout(){
 
-        alert("Pehle cart me product add karein 🛒");
+  document.getElementById("checkoutBox").style.display = "none";
 
-        return;
+}
+
+
+// ===============================
+// GPS LOCATION
+// ===============================
+
+function getLocation(){
+
+  const status =
+    document.getElementById("locationStatus");
+
+
+  if(!navigator.geolocation){
+
+    status.innerText =
+      "Aapke phone me location support nahi hai.";
+
+    return;
+  }
+
+
+  status.innerText =
+    "📍 Location mil rahi hai...";
+
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      latitude = position.coords.latitude;
+
+      longitude = position.coords.longitude;
+
+
+      status.innerHTML =
+        "✅ Location selected<br>" +
+        "Lat: " + latitude.toFixed(5) +
+        "<br>" +
+        "Lng: " + longitude.toFixed(5);
+
+    },
+
+    function(error){
+
+      status.innerText =
+        "❌ Location permission allow karein.";
+
+    },
+
+    {
+      enableHighAccuracy:true,
+      timeout:10000
     }
 
-    let message =
-    "🛒 *Garkha Express Order*%0A%0A";
+  );
 
-    cart.forEach(item => {
+}
 
-        message +=
-        "• " +
-        item.name +
-        " × " +
-        item.qty +
-        " = ₹" +
-        (item.price * item.qty) +
-        "%0A";
 
-    });
+// ===============================
+// PLACE ORDER
+// ===============================
 
-    const total =
-    cart.reduce(
-        (sum,item) =>
-        sum + item.price * item.qty,
-        0
+async function placeOrder(){
+
+  if(cart.length === 0){
+
+    alert("Cart empty hai.");
+
+    return;
+  }
+
+
+  const name =
+    document.getElementById("customerName").value.trim();
+
+
+  const phone =
+    document.getElementById("phone").value.trim();
+
+
+  const district =
+    document.getElementById("district").value
+    .trim()
+    .toLowerCase();
+
+
+  const address =
+    document.getElementById("address").value.trim();
+
+
+  // Validation
+
+  if(!name){
+
+    alert("Name enter karein.");
+
+    return;
+  }
+
+
+  if(!phone || phone.length < 10){
+
+    alert("Valid mobile number enter karein.");
+
+    return;
+  }
+
+
+  if(!district){
+
+    alert("District enter karein.");
+
+    return;
+  }
+
+
+  if(!address){
+
+    alert("Delivery address enter karein.");
+
+    return;
+  }
+
+
+  // District check
+
+  if(!ALLOWED_DISTRICTS.includes(district)){
+
+    alert(
+      "Sorry! Abhi Garkha Express is area me delivery nahi karta."
     );
 
-    message +=
-    "%0A💰 *Total: ₹" +
-    total +
-    "*%0A%0A";
+    return;
+  }
 
-    message +=
-    "📍 Delivery Address: ";
 
-    /*
-    IMPORTANT:
-    XXXXXXXXXX ko apne WhatsApp number se replace karein.
-    Example: 919876543210
-    */
+  // GPS check
 
-    const phone = "91XXXXXXXXXX";
+  if(latitude === null || longitude === null){
 
-    window.open(
-        "https://wa.me/" +
-        phone +
-        "?text=" +
-        message,
-        "_blank"
+    alert(
+      "Order place karne se pehle 'Use My Current Location' dabayein."
     );
+
+    return;
+  }
+
+
+  // Calculate total
+
+  let total = 0;
+
+  cart.forEach(item => {
+
+    total += item.price * item.qty;
+
+  });
+
+
+  // Database order
+
+  const orderData = {
+
+    customer_name:name,
+
+    phone:phone,
+
+    address:address,
+
+    district:district,
+
+    latitude:latitude,
+
+    longitude:longitude,
+
+    items:cart,
+
+    total:total,
+
+    payment_method:"Cash on Delivery",
+
+    status:"New"
+
+  };
+
+
+  const { data, error } =
+    await db
+      .from("orders")
+      .insert([orderData])
+      .select()
+      .single();
+
+
+  if(error){
+
+    console.error(error);
+
+    alert(
+      "Order save nahi hua.\n\n" +
+      error.message
+    );
+
+    return;
+  }
+
+
+  // Order successful
+
+  alert(
+    "🎉 Order Successfully Placed!\n\n" +
+
+    "Order ID: #" + data.id +
+    "\nTotal: ₹" + total
+  );
+
+
+  // WhatsApp message
+
+  let message =
+    "🛒 Garkha Express Order\n\n" +
+
+    "Order ID: #" + data.id +
+    "\n" +
+
+    "Customer: " + name +
+    "\n" +
+
+    "Phone: " + phone +
+    "\n" +
+
+    "Address: " + address +
+    "\n" +
+
+    "District: " + district +
+    "\n\n";
+
+
+  cart.forEach(item => {
+
+    message +=
+      item.name +
+      " x " +
+      item.qty +
+      " = ₹" +
+      (item.price * item.qty) +
+      "\n";
+
+  });
+
+
+  message +=
+    "\nTotal: ₹" + total +
+
+    "\n\n📍 Location:" +
+
+    "\nhttps://www.google.com/maps?q=" +
+
+    latitude +
+    "," +
+    longitude;
+
+
+  const whatsappNumber =
+    "91XXXXXXXXXX";
+
+
+  window.open(
+    "https://wa.me/" +
+    whatsappNumber +
+    "?text=" +
+    encodeURIComponent(message),
+
+    "_blank"
+  );
+
+
+  // Clear
+
+  cart = [];
+
+  updateCart();
+
+  closeCheckout();
+
+  document.getElementById("customerName").value = "";
+
+  document.getElementById("phone").value = "";
+
+  document.getElementById("district").value = "";
+
+  document.getElementById("address").value = "";
+
+  latitude = null;
+
+  longitude = null;
+
 }
